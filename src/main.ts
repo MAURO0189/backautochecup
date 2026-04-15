@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import helmet from 'helmet';
+import helmet, { noSniff } from 'helmet';
 import csurf from 'csurf';
 import cookieParser from 'cookie-parser';
 //import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -35,10 +35,23 @@ async function bootstrap() {
 
   app.use(
     helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          ObjectSrc: ["'self'"],
+          upgradeInsecureRequests: [],
+        },
+      },
       hsts: {
         maxAge: 31536000,
         includeSubDomains: true,
         preload: true,
+      },
+      xssFilter: true,
+      noSniff: true,
+      frameguard: {
+        action: 'deny',
       },
     }),
   );

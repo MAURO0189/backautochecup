@@ -13,12 +13,14 @@ import type { Response } from 'express';
 import { AdminService } from './admin.service';
 import { RegisterAdminDto } from './dto/registerAdmin.dto';
 import { LoginAdminDto } from './dto/loginAdmin.dto';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 
 @Controller('api/admins')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Post('register')
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
   async register(@Body() registerAdminDto: RegisterAdminDto) {
     try {
       await this.adminService.registerAdmin(registerAdminDto);
@@ -35,6 +37,7 @@ export class AdminController {
   }
 
   @Post('login')
+  @Throttle({ login: { ttl: 900000, limit: 3 } })
   async login(
     @Body() loginAdminDto: LoginAdminDto,
     @Res({ passthrough: true }) res: Response,
@@ -66,6 +69,7 @@ export class AdminController {
   }
 
   @Post('logout')
+  @SkipThrottle()
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
     return { message: 'Sesión cerrada exitosamente' };

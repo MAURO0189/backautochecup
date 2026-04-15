@@ -12,7 +12,7 @@ import { Match } from '../../../common/validators/match.decorators';
 
 export class RegisterDto {
   @IsString()
-  @MinLength(5, {
+  @MinLength(4, {
     message: 'El nombre de usuario debe tener al menos 5 caracteres',
   })
   username!: string;

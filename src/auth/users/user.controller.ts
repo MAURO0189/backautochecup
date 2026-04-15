@@ -9,6 +9,7 @@ import {
   HttpStatus,
   Res,
 } from '@nestjs/common';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { UserService } from './user.service';
 import { RegisterDto } from './dto/register.dto';
@@ -19,6 +20,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('register')
+  @Throttle({ short: { ttl: 60000, limit: 3 } })
   async register(@Body() registerDto: RegisterDto) {
     try {
       await this.userService.register(registerDto);
@@ -39,6 +41,7 @@ export class UserController {
   }
 
   @Post('login')
+  @Throttle({ login: { ttl: 900000, limit: 3 } })
   async login(
     @Body() loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -74,6 +77,7 @@ export class UserController {
   }
 
   @Post('logout')
+  @SkipThrottle()
   logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('access_token');
     return { message: 'Logout exitoso' };

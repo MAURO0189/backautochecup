@@ -31,6 +31,12 @@ export class User {
   @Column({ type: 'varchar', nullable: false })
   password!: string;
 
+  @Column({ type: 'varchar', nullable: true, default: null })
+  resetPasswordToken!: string | null;
+
+  @Column({ type: 'datetime', nullable: true, default: null })
+  resetPasswordExpires!: Date | null;
+
   @Index()
   @Column({ type: 'varchar', length: 36, nullable: true })
   uuid!: string | null;
