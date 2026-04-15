@@ -13,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { EmailValidator } from '../../common/validators/email.validator';
 import { ValidatePassword } from '../../common/validators/validate.password';
 import { LoginDto } from './dto/login.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UserService {
@@ -20,6 +21,7 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
   ) {}
 
   async register({
@@ -58,6 +60,10 @@ export class UserService {
       identificationNumber,
       uuid: uuid,
     });
+
+    this.mailService
+      .sendWelcomeEmail(newUser.email, newUser.username)
+      .catch(() => {});
 
     return this.userRepository.save(newUser);
   }
