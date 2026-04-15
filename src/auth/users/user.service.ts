@@ -44,7 +44,7 @@ export class UserService {
 
     const existingUser = await this.userRepository.findOneBy({ email });
     if (existingUser) {
-      throw new BadRequestException('El correo electrónico ya está registrado');
+      throw new BadRequestException('El usuario ya está registrado');
     }
 
     const uuid = uuidv4();
