@@ -57,7 +57,7 @@ export class MailService {
 
     try {
       await this.transporter.sendMail({
-        from: `"Tu App" <${process.env.MAIL_USER}>`,
+        from: `"AutocheckUp" <${process.env.MAIL_USER}>`,
         to: email,
         subject: 'Recuperar contraseña',
         html: `
