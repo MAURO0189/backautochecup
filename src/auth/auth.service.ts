@@ -9,6 +9,7 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { User } from './users/entities/user.entity';
 import { MailService } from './mail/mail.service';
+import e from 'express';
 
 @Injectable()
 export class AuthService {
@@ -38,8 +39,11 @@ export class AuthService {
   async forgotPassword(email: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { email } });
 
-    // Respuesta genérica — no reveles si el email existe o no
-    if (!user) return;
+    if (!user) {
+      throw new NotFoundException(
+        `el correo ${email} no está registrado. Verifica y vuelve a intentarlo.`,
+      );
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 15 * 60 * 1000);
