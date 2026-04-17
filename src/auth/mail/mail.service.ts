@@ -26,9 +26,9 @@ export class MailService {
   async sendWelcomeEmail(email: string, username: string): Promise<void> {
     try {
       await this.transporter.sendMail({
-        from: `"Tu App" <${process.env.MAIL_USER}>`,
+        from: `"AutocheckUp" <${process.env.MAIL_USER}>`,
         to: email,
-        subject: '¡Bienvenido a Tu App!',
+        subject: '¡Bienvenido a AutocheckUp!',
         html: `
           <h2>¡Hola, ${username}!</h2>
           <p>Tu registro fue exitoso. Ya puedes iniciar sesión.</p>
