@@ -24,6 +24,7 @@ export class AuthService {
       where: { id: userId },
       select: [
         'id',
+        'uuid',
         'username',
         'lastName',
         'email',

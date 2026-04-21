@@ -6,6 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RegisterDto } from './dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UploadAvatarDto } from './dto/upload-avatar.dto';
 import { User } from './entities/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import * as bcryptjs from 'bcryptjs';
@@ -17,6 +19,15 @@ import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class UserService {
+  private readonly MAX_AVATAR_BYTES = 1 * 1024 * 1024;
+  private readonly ALLOWED_MIME_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/jpg',
+    'image/gif',
+  ];
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -124,6 +135,92 @@ export class UserService {
 
   create(createUserDto: RegisterDto) {
     return this.userRepository.create(createUserDto);
+  }
+
+  async updateProfile(
+    uuid: string,
+    {
+      username,
+      birthDate,
+      occupation,
+      otherOccupation,
+      howDidYouFindUs,
+    }: UpdateProfileDto,
+  ) {
+    const user = await this.userRepository.findOne({ where: { uuid } });
+
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    // Validar que el año de nacimiento sea razonable
+    const birth = new Date(birthDate);
+    const minDate = new Date('1900-01-01');
+    const maxDate = new Date();
+    maxDate.setFullYear(maxDate.getFullYear() - 1); // al menos 1 año
+
+    if (birth < minDate || birth > maxDate) {
+      throw new BadRequestException('La fecha de nacimiento no es válida');
+    }
+
+    user.username = username;
+    user.birthDate = birth;
+    user.occupation = occupation;
+    user.otherOccupation =
+      occupation === 'Otros' ? (otherOccupation ?? null) : null;
+    user.howDidYouFindUs = howDidYouFindUs;
+
+    await this.userRepository.save(user);
+
+    return {
+      message: 'Perfil actualizado exitosamente',
+      profile: {
+        username: user.username,
+        birthDate: user.birthDate,
+        occupation: user.occupation,
+        otherOccupation: user.otherOccupation,
+        howDidYouFindUs: user.howDidYouFindUs,
+      },
+    };
+  }
+
+  async updateAvatar(uuid: string, { imageBase64, mimeType }: UploadAvatarDto) {
+    const user = await this.userRepository.findOne({ where: { uuid } });
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+
+    if (!this.ALLOWED_MIME_TYPES.includes(mimeType)) {
+      throw new BadRequestException('Formato de imagen no permitido');
+    }
+
+    // Decodificar base64 y validar tamaño
+    const buffer = Buffer.from(imageBase64, 'base64');
+    if (buffer.byteLength > this.MAX_AVATAR_BYTES) {
+      throw new BadRequestException('La imagen no puede superar 1 MB');
+    }
+
+    user.avatarData = buffer;
+    user.avatarMimeType = mimeType;
+
+    await this.userRepository.save(user);
+
+    return { message: 'Foto de perfil actualizada exitosamente' };
+  }
+
+  async getAvatar(
+    uuid: string,
+  ): Promise<{ data: Buffer; mimeType: string } | null> {
+    const user = await this.userRepository.findOne({
+      where: { uuid },
+      select: ['avatarData', 'avatarMimeType'],
+    });
+
+    if (!user || !user.avatarData || !user.avatarMimeType) {
+      return null;
+    }
+
+    return { data: user.avatarData, mimeType: user.avatarMimeType };
   }
 
   async findAll(): Promise<
