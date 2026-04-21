@@ -49,6 +49,24 @@ export class User {
   })
   role!: string;
 
+  @Column({ type: 'date', nullable: true })
+  birthDate!: Date | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  occupation!: string | null;
+
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  otherOccupation!: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  howDidYouFindUs!: string | null;
+
+  @Column({ type: 'longblob', nullable: true })
+  avatarData!: Buffer | null;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  avatarMimeType!: string | null;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
 
